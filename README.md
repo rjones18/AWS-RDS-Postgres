@@ -1,2 +1,1 @@
 # AWS-RDS-Postgres
-.
