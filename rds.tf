@@ -13,10 +13,10 @@ resource "aws_db_instance" "database-instance" {
   engine                  = "postgres"
   engine_version          = "16.3"
   instance_class          = "db.t3.micro"
-  identifier              = "wordpress"
-  db_name                 = jsondecode(nonsensitive(data.aws_secretsmanager_secret_version.current.secret_string))["wordpress_db_name"]
-  username                = "edu"
-  password                = jsondecode(nonsensitive(data.aws_secretsmanager_secret_version.current.secret_string))["wordpress_password"]
+  identifier              = "edu"
+  db_name                 = jsondecode(nonsensitive(data.aws_secretsmanager_secret_version.current.secret_string))["db_name"]
+  username                = jsondecode(nonsensitive(data.aws_secretsmanager_secret_version.current.secret_string))["db_user"]
+  password                = jsondecode(nonsensitive(data.aws_secretsmanager_secret_version.current.secret_string))["db_password"]
   multi_az                = true
   db_subnet_group_name    = aws_db_subnet_group.database-subnet-group.name
   vpc_security_group_ids  = [aws_security_group.database-security-group.id]
