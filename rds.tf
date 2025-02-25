@@ -22,7 +22,7 @@ resource "aws_db_instance" "database-instance" {
   vpc_security_group_ids  = [aws_security_group.database-security-group.id]
   skip_final_snapshot     = true
   backup_retention_period = 1
-  publicly_accessible = true
+  publicly_accessible = false
 }
 
 
