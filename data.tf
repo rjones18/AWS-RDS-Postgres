@@ -20,7 +20,7 @@ data "aws_subnet" "data-b" {
 }
 
 data "aws_secretsmanager_secret" "secrets" {
-  arn = "arn:aws:secretsmanager:us-west-2:014498625953:secret:postgres-credentials-qBZ45r"
+  arn = "arn:aws:secretsmanager:us-west-2:014498625953:secret:db-secret-0HOYKM"
 }
 data "aws_secretsmanager_secret_version" "current" {
   secret_id = data.aws_secretsmanager_secret.secrets.id
