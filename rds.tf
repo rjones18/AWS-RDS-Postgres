@@ -16,6 +16,8 @@ resource "aws_db_instance" "database-instance" {
   identifier              = "edu"
   db_name                 = "edu"
   username                = "edu"
+  # username                = jsondecode(nonsensitive(data.aws_secretsmanager_secret_version.current.secret_string))["db_user"]
+  # password                = jsondecode(nonsensitive(data.aws_secretsmanager_secret_version.current.secret_string))["db_password"]
   manage_master_user_password = true
   multi_az                = true
   db_subnet_group_name    = aws_db_subnet_group.database-subnet-group.name
