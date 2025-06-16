@@ -1,15 +1,15 @@
 resource "aws_security_group" "database-security-group" {
-  name        = "Database Security Group"
+  name        = "Database Security Group 2"
   description = "Allow access to DB instance"
   vpc_id      = data.aws_vpc.main_vpc.id
 
- ingress {
-  description     = "Allow EC2 instance to access RDS Database"
-   from_port       = 5432
-   to_port         = 5432
-   protocol        = "tcp"
-   cidr_blocks = ["0.0.0.0/0"]
- }
+  ingress {
+    description = "Allow EC2 instance to access RDS Database"
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   # OUTBOUD CONNECTIONS
   egress {
@@ -20,3 +20,4 @@ resource "aws_security_group" "database-security-group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+

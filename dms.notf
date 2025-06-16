@@ -1,0 +1,144 @@
+resource "aws_iam_role" "dms_vpc_role" {
+  name = "dms-vpc-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Principal = {
+        Service = "dms.amazonaws.com"
+      },
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "dms_vpc_role_policy" {
+  role       = aws_iam_role.dms_vpc_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSVPCManagementRole"
+}
+
+
+resource "aws_dms_replication_instance" "example" {
+  replication_instance_id        = "dms-repl-instance"
+  replication_instance_class     = "dms.t3.micro"
+  allocated_storage              = 50
+  vpc_security_group_ids         = [aws_security_group.database-security-group.id]
+  publicly_accessible            = false
+  replication_subnet_group_id    = aws_dms_replication_subnet_group.dms_subnet_group.id
+}
+
+resource "aws_dms_replication_subnet_group" "dms_subnet_group" {
+  replication_subnet_group_id = "dms-subnet-group"
+  subnet_ids                  = [data.aws_subnet.data-a.id, data.aws_subnet.data-b.id]
+  replication_subnet_group_description = "DMS subnet group"
+}
+
+
+resource "aws_dms_endpoint" "source" {
+  endpoint_id     = "source-db-endpoint"
+  endpoint_type   = "source"
+  engine_name     = "postgres"
+  username        = "edu"
+  password        = random_password.rds_password.result
+  server_name     = aws_db_instance.database-instance.address
+  port            = 5432
+  database_name   = "edu"
+  ssl_mode        = "require"  # This avoids the 'no encryption' error
+}
+
+resource "aws_dms_endpoint" "target" {
+  endpoint_id     = "target-db-endpoint"
+  endpoint_type   = "target"
+  engine_name     = "postgres"
+  username        = "edu"
+  password        = random_password.rds_password.result
+  server_name     = aws_db_instance.database-instance2.address
+  port            = 5432
+  database_name   = "edu"
+  ssl_mode        = "require"  # This avoids the 'no encryption' error
+}
+
+
+resource "aws_dms_replication_task" "replication" {
+  replication_task_id       = "rds-to-rds-task"
+  migration_type            = "full-load"
+  replication_instance_arn  = aws_dms_replication_instance.example.replication_instance_arn
+  source_endpoint_arn       = aws_dms_endpoint.source.endpoint_arn
+  target_endpoint_arn       = aws_dms_endpoint.target.endpoint_arn
+
+  table_mappings = jsonencode({
+    rules: [
+      {
+        "rule-type" : "selection",
+        "rule-id"   : "1",
+        "rule-name" : "1",
+        "object-locator" : {
+          "schema-name" : "%",
+          "table-name"  : "%"
+        },
+        "rule-action" : "include"
+      }
+    ]
+  })
+
+  replication_task_settings = jsonencode({
+    TargetMetadata: {
+      TargetSchema         : "",
+      SupportLobs          : true,
+      FullLobMode          : true,
+      LobChunkSize         : 64,
+      LimitedSizeLobMode   : false,
+      LoadMaxFileSize      : 0,
+      ParallelLoadThreads  : 0,
+      ParallelLoadBufferSize : 0,
+      BatchApplyEnabled    : true
+    },
+    FullLoadSettings: {
+      TargetTablePrepMode  : "DROP_AND_CREATE",
+      StopTaskCachedChangesApplied : false,
+      StopTaskCachedChangesNotApplied : false
+    },
+    Logging: {
+      EnableLogging : true
+    },
+    ControlTablesSettings: {
+      ControlSchema: "dms_control"
+    },
+    ValidationSettings: {
+      EnableValidation       : true
+    },
+    PreMigrationAssessmentRun: {
+      EnableAssessmentRun    : true
+    }
+  #   "ErrorBehavior": {
+  #   "FailOnNoTablesCaptured": false
+  # }
+  })
+}
+
+
+
+resource "aws_iam_role" "dms_cloudwatch_logs_role" {
+  name = "dms-cloudwatch-logs-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect    = "Allow",
+      Principal = { Service = "dms.amazonaws.com" },
+      Action    = "sts:AssumeRole"
+    }]
+  })
+}
+
+
+resource "aws_iam_role_policy_attachment" "dms_cloudwatch_logs_role_policy" {
+  role       = aws_iam_role.dms_cloudwatch_logs_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSCloudWatchLogsRole"
+}
+
+resource "aws_cloudwatch_log_group" "dms_task_logs" {
+  name              = "/aws/dms/replication-tasks/${aws_dms_replication_task.replication.replication_task_id}"
+  retention_in_days = 14
+}
