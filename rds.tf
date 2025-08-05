@@ -23,13 +23,13 @@ resource "aws_db_instance" "database-instance" {
   identifier                    = "edu"
   db_name                       = "edu"
   username                      = "edu"
-  password                      = random_password.rds_password.result
   multi_az                      = true
   db_subnet_group_name          = aws_db_subnet_group.database-subnet-group.name
   vpc_security_group_ids        = [aws_security_group.database-security-group.id]
   skip_final_snapshot           = true
   backup_retention_period       = 1
   publicly_accessible           = false
+  manage_master_user_password = true
 }
 
 
@@ -43,13 +43,13 @@ resource "aws_db_instance" "database-instance2" {
   identifier                    = "edu2"
   db_name                       = "edu"
   username                      = "edu"
-  password                      = random_password.rds_password.result
   multi_az                      = true
   db_subnet_group_name          = aws_db_subnet_group.database-subnet-group.name
   vpc_security_group_ids        = [aws_security_group.database-security-group.id]
   skip_final_snapshot           = true
   backup_retention_period       = 1
   publicly_accessible           = false
+  manage_master_user_password = true
 }
 
 

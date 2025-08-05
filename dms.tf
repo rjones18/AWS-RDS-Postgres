@@ -17,12 +17,12 @@ module "dms_pg_to_pg" {
   source_server_name    = aws_db_instance.database-instance.address
   source_database_name  = "edu"
   source_username       = "edu"
-  source_password       = random_password.rds_password.result
+  source_password       = local.rds_credentials.password
 
   target_server_name    = aws_db_instance.database-instance2.address
   target_database_name  = "edu"
   target_username       = "edu"
-  target_password       = random_password.rds_password.result
+  target_password       = local.rds_credentials2.password
 
   # ————————————————————————————————
   # 3) Replication task settings

@@ -18,9 +18,17 @@
 #   })
 # }
 
-# data "aws_secretsmanager_secret" "rds_secret" {
-#   name = "rds!db-616b88f4-1107-41be-979e-f3e1a3cad049" # Adjust based on actual secret name format
-# }
+data "aws_secretsmanager_secret_version" "rds_secret" {
+  secret_id = "rds!db-aa43f834-bee4-4700-a9eb-0cce39b9d22b" # Adjust based on actual secret name format
+}
+data "aws_secretsmanager_secret_version" "rds_secret2" {
+  secret_id = "rds!db-8d7176c9-97ea-4afe-a27d-865238dd6437" # Adjust based on actual secret name format
+}
+locals {
+  rds_credentials = jsondecode(data.aws_secretsmanager_secret_version.rds_secret.secret_string)
+  rds_credentials2 = jsondecode(data.aws_secretsmanager_secret_version.rds_secret2.secret_string)
+}
+
 
 # resource "aws_secretsmanager_secret_rotation" "rds_rotation" {
 #   secret_id           = data.aws_secretsmanager_secret.rds_secret.id
